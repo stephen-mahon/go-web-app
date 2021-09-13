@@ -3,31 +3,47 @@ package main
 import (
 	"fmt"
 	"net/http"
-
-	"github.com/julienschmidt/httprouter"
 )
 
-func handlerFunc(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html")
-	if r.URL.Path == "/" {
-		fmt.Fprint(w, "<h1>Welcome to my awesome site!</h1>")
-	} else if r.URL.Path == "/contact" {
-		fmt.Fprint(w, "To get in touch please send an email to <a href=\"mailto:support@lenslocked.com\">support@lenslocked.com</a>.")
-	} else {
-		w.WriteHeader(http.StatusNotFound)
-		fmt.Fprint(w, "<h1>We could not find the page you were looking for :(</h1>")
+func homeHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	fmt.Fprint(w, "<h1>Welcome to my awesome site!</h1>")
+}
+
+func contactHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	fmt.Fprint(w, "<h1>Contact</h1><p>To get in touch email me at <a href=\"mailto:stemahon@gmail.com\">stemahon@gmail.com</a>")
+}
+
+func faqHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html; charset=uft-8")
+	fmt.Fprintf(w, "<h1>Frequently Asked Questions</h1>")
+}
+
+func notfoundHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.WriteHeader(http.StatusNotFound)
+	fmt.Fprint(w, "<h1>We could not find the page you were looking for!</h1>")
+}
+
+func pathHandler(w http.ResponseWriter, r *http.Request) {
+	switch r.URL.Path {
+	case "/":
+		homeHandler(w, r)
+	case "/contact/":
+		contactHandler(w, r)
+	case "/faq/":
+		faqHandler(w, r)
+	default:
+		notfoundHandler(w, r)
 	}
-}
 
-func Hello(w http.ResponseWriter, r * http.Request, ps httprouter.Params) {
-	fmt.Fprintf(w, "hello %s!\n", ps.ByName("name"))
 }
-
 
 func main() {
-	router := httprouter.New()
-	router.GET("/hello/:name", Hello)
-
-	// http.HandleFunc("/", handlerFunc)
-	http.ListenAndServe(":3000", router)
+	//r := mux.NewRouter()
+	http.HandleFunc("/", pathHandler)
+	//r.HandleFunc("/", pathHandler)
+	fmt.Println("Starting server on :3000...")
+	http.ListenAndServe(":3000", nil)
 }
